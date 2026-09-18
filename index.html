@@ -13,6 +13,8 @@
       --muted: #9aa8b8;
       --accent: #c9a227;
       --line: #1e2a38;
+      --ok: #7dcea0;
+      --err: #e07a5f;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -51,7 +53,7 @@
       font-size: 0.85rem;
       margin: 14px 0 6px;
     }
-    input, textarea, select {
+    input, textarea {
       width: 100%;
       padding: 10px 12px;
       border-radius: 8px;
@@ -73,7 +75,12 @@
       border: 0;
       cursor: pointer;
     }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .note { color: var(--muted); font-size: 0.9rem; margin-top: 12px; }
+    .hp { position: absolute; left: -9999px; height: 0; width: 0; overflow: hidden; }
+    .banner { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin-bottom: 12px; }
+    .banner.ok { color: var(--ok); }
+    .banner.err { color: var(--err); }
     footer { margin-top: 48px; color: var(--muted); font-size: 0.9rem; }
   </style>
 </head>
@@ -87,29 +94,39 @@
     </p>
 
     <div class="card">
-      <form action="mailto:victor@namayani.com?subject=Website%20Quote%20Request" method="post" enctype="text/plain">
+      <div id="quote-success" class="banner ok" hidden>
+        Quote request sent. We will reply within one business day to the email you gave.
+      </div>
+      <div id="quote-error" class="banner err" hidden></div>
+
+      <form id="quote-form" action="https://formspree.io/f/meaoorgb" method="POST">
+        <input type="hidden" name="_subject" value="Namayani haulage quote request" />
+        <p class="hp" aria-hidden="true">
+          <label>Leave blank<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label>
+        </p>
+
         <label for="name">Name</label>
-        <input id="name" name="Name" required />
+        <input id="name" name="name" required />
 
         <label for="company">Company</label>
-        <input id="company" name="Company" />
+        <input id="company" name="company" />
 
         <label for="email">Email</label>
-        <input id="email" name="Email" type="email" required />
+        <input id="email" name="email" type="email" required />
 
         <label for="phone">Phone / WhatsApp</label>
-        <input id="phone" name="Phone" />
+        <input id="phone" name="phone" />
 
         <label for="origin">Origin</label>
-        <input id="origin" name="Origin" placeholder="e.g. Randburg, South Africa" />
+        <input id="origin" name="origin" placeholder="e.g. Randburg, South Africa" />
 
         <label for="destination">Destination</label>
-        <input id="destination" name="Destination" placeholder="e.g. Kadoma, Zimbabwe" />
+        <input id="destination" name="destination" placeholder="e.g. Kadoma, Zimbabwe" />
 
         <label for="cargo">Cargo description</label>
-        <textarea id="cargo" name="Cargo" rows="4" placeholder="Type, weight, value, special requirements"></textarea>
+        <textarea id="cargo" name="message" rows="4" placeholder="Type, weight, value, special requirements"></textarea>
 
-        <button class="btn" type="submit">Send quote request</button>
+        <button class="btn" type="submit" id="quote-submit">Send quote request</button>
       </form>
       <p class="note">Or email <a href="mailto:victor@namayani.com">victor@namayani.com</a> · WhatsApp 079 996 2133</p>
     </div>
@@ -119,5 +136,42 @@
       <p>Namayani Group (Pty) Ltd · Victor Michelo</p>
     </footer>
   </div>
+  <script>
+    (function () {
+      var form = document.getElementById("quote-form");
+      var success = document.getElementById("quote-success");
+      var errorBox = document.getElementById("quote-error");
+      var btn = document.getElementById("quote-submit");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        errorBox.hidden = true;
+        btn.disabled = true;
+        fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" }
+        }).then(function (res) {
+          if (res.ok) {
+            form.hidden = true;
+            success.hidden = false;
+            return;
+          }
+          return res.json().then(function (data) {
+            var msg = "Could not send. Email victor@namayani.com or WhatsApp 079 996 2133.";
+            if (data && data.errors && data.errors.length) {
+              msg = data.errors.map(function (err) { return err.message; }).join(" ");
+            }
+            errorBox.textContent = msg;
+            errorBox.hidden = false;
+            btn.disabled = false;
+          });
+        }).catch(function () {
+          errorBox.textContent = "Network error. Email victor@namayani.com or WhatsApp 079 996 2133.";
+          errorBox.hidden = false;
+          btn.disabled = false;
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
