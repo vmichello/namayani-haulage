@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Request a Quote | Namayani Haulage</title>
-  <meta name="description" content="Request a cross-border haulage quote from Namayani Haulage. South Africa to Zimbabwe, high-value and project cargo." />
+  <title>Logistics inquiry | Namayani Haulage</title>
+  <meta name="description" content="Request a Namayani Haulage quote. Cross-border SA-Zimbabwe and SADC road freight for high-value and project cargo." />
   <style>
     :root {
       --bg: #0b0f14;
@@ -39,6 +39,14 @@
       margin-bottom: 16px;
     }
     h1 { font-size: clamp(2rem, 5vw, 2.6rem); line-height: 1.15; margin-bottom: 12px; }
+    h2 {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 28px 0 8px;
+    }
     .tagline { color: var(--muted); max-width: 38em; margin-bottom: 28px; }
     .card {
       background: var(--card);
@@ -47,13 +55,15 @@
       padding: 24px;
       margin: 24px 0;
     }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
     label {
       display: block;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 0.85rem;
       margin: 14px 0 6px;
     }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 10px 12px;
       border-radius: 8px;
@@ -87,48 +97,132 @@
 <body>
   <div class="wrap">
     <div class="badge">Namayani Haulage</div>
-    <h1 id="quote">Request a transport quote</h1>
+    <h1 id="quote">Logistics inquiry</h1>
     <p class="tagline">
-      Cross-border road freight from South Africa to Zimbabwe for high-value, project and energy cargo.
-      Submit your details and we will respond within one business day.
+      Dedicated and arranged road freight across SADC, especially South Africa to Zimbabwe via Beitbridge.
+      High-value, project and energy cargo. We reply within one business day.
     </p>
 
     <div class="card">
       <div id="quote-success" class="banner ok" hidden>
-        Quote request sent. We will reply within one business day to the email you gave.
+        Inquiry sent. We will reply within one business day to the email you gave.
       </div>
       <div id="quote-error" class="banner err" hidden></div>
 
       <form id="quote-form" action="https://formspree.io/f/meaoorgb" method="POST">
-        <input type="hidden" name="_subject" value="Namayani haulage quote request" />
+        <input type="hidden" name="_subject" value="Namayani logistics inquiry" />
         <p class="hp" aria-hidden="true">
           <label>Leave blank<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label>
         </p>
 
-        <label for="name">Name</label>
-        <input id="name" name="name" required />
+        <h2>Contact</h2>
+        <div class="grid">
+          <div>
+            <label for="name">Name</label>
+            <input id="name" name="name" required />
+          </div>
+          <div>
+            <label for="company">Company</label>
+            <input id="company" name="company" />
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required />
+          </div>
+          <div>
+            <label for="phone">Phone / WhatsApp</label>
+            <input id="phone" name="phone" />
+          </div>
+        </div>
 
-        <label for="company">Company</label>
-        <input id="company" name="company" />
+        <h2>Route</h2>
+        <div class="grid">
+          <div>
+            <label for="origin">Collection / origin</label>
+            <input id="origin" name="origin" required placeholder="City, country" />
+          </div>
+          <div>
+            <label for="destination">Delivery / destination</label>
+            <input id="destination" name="destination" required placeholder="City, country" />
+          </div>
+          <div>
+            <label for="corridor">Preferred corridor</label>
+            <select id="corridor" name="corridor">
+              <option value="">Select</option>
+              <option value="Beitbridge">Beitbridge (SA-Zimbabwe)</option>
+              <option value="Chirundu">Chirundu (Zim-Zambia)</option>
+              <option value="Kasumbalesa">Kasumbalesa (Zambia-DRC)</option>
+              <option value="Other / unsure">Other / unsure</option>
+            </select>
+          </div>
+          <div>
+            <label for="ready_date">Cargo ready date</label>
+            <input id="ready_date" name="ready_date" type="date" />
+          </div>
+        </div>
 
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" required />
+        <h2>Cargo</h2>
+        <div class="grid">
+          <div>
+            <label for="service">Service needed</label>
+            <select id="service" name="service">
+              <option value="Dedicated FTL">Dedicated full truck</option>
+              <option value="Arranged / brokered">Arranged / brokered load</option>
+              <option value="Project / abnormal">Project or abnormal load</option>
+              <option value="Not sure">Not sure yet</option>
+            </select>
+          </div>
+          <div>
+            <label for="cargo_type">Cargo type</label>
+            <select id="cargo_type" name="cargo_type">
+              <option value="">Select</option>
+              <option value="BESS / lithium energy storage">BESS / lithium energy storage</option>
+              <option value="Solar equipment">Solar equipment</option>
+              <option value="Mining equipment">Mining equipment</option>
+              <option value="Industrial / general">Industrial / general</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="weight_t">Weight (tonnes)</label>
+            <input id="weight_t" name="weight_t" inputmode="decimal" placeholder="e.g. 20" />
+          </div>
+          <div>
+            <label for="cargo_value">Declared cargo value</label>
+            <input id="cargo_value" name="cargo_value" placeholder="Amount and currency" />
+          </div>
+        </div>
 
-        <label for="phone">Phone / WhatsApp</label>
-        <input id="phone" name="phone" />
+        <label for="message">Cargo description and packing</label>
+        <textarea id="message" name="message" rows="4" placeholder="What it is, how it is packed, access limits, HS codes if known"></textarea>
 
-        <label for="origin">Origin</label>
-        <input id="origin" name="origin" placeholder="e.g. Randburg, South Africa" />
+        <h2>Risk and insurance</h2>
+        <div class="grid">
+          <div>
+            <label for="git">Goods in transit cover</label>
+            <select id="git" name="git">
+              <option value="Please quote GIT">Please quote GIT</option>
+              <option value="Customer places own GIT">Customer places own GIT</option>
+              <option value="Unsure">Unsure</option>
+            </select>
+          </div>
+          <div>
+            <label for="tracking">Tracking / escort</label>
+            <select id="tracking" name="tracking">
+              <option value="Standard tracking">Standard tracking</option>
+              <option value="Enhanced tracking">Enhanced tracking</option>
+              <option value="Escort required">Escort required</option>
+              <option value="Advise us">Advise us</option>
+            </select>
+          </div>
+        </div>
 
-        <label for="destination">Destination</label>
-        <input id="destination" name="destination" placeholder="e.g. Kadoma, Zimbabwe" />
+        <label for="notes">Anything else</label>
+        <textarea id="notes" name="notes" rows="3" placeholder="Clearing agent, consignee, site hours, tender deadline"></textarea>
 
-        <label for="cargo">Cargo description</label>
-        <textarea id="cargo" name="message" rows="4" placeholder="Type, weight, value, special requirements"></textarea>
-
-        <button class="btn" type="submit" id="quote-submit">Send quote request</button>
+        <button class="btn" type="submit" id="quote-submit">Send logistics inquiry</button>
       </form>
-      <p class="note">Or email <a href="mailto:victor@namayani.com">victor@namayani.com</a> · WhatsApp 079 996 2133</p>
+      <p class="note">This is an inquiry, not a booking. Arrangement fee or deposit is agreed before a truck is locked. Email <a href="mailto:victor@namayani.com">victor@namayani.com</a> · WhatsApp 079 996 2133</p>
     </div>
 
     <footer>
