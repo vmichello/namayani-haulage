@@ -85,12 +85,27 @@ To request a quotation, please provide:
 
 This repository holds operational documentation, processes and tools used by the Namayani Haulage team.
 
+### MCP endpoint
+
+The MCP route source is at [`app/api/mcp/route.ts`](./app/api/mcp/route.ts) and exposes the authenticated `roll_dice` tool over `GET` and `POST` at `/api/mcp` when deployed in a Next.js-compatible runtime. Set the Vercel environment variables `MCP_DEMO_TOKEN` to the bearer token expected by clients, `MCP_AUTH_SERVER_ISSUER` to the actual OAuth authorization-server issuer, and optionally `MCP_RESOURCE_URL` to the deployed MCP resource URL. Requests must include `Authorization: Bearer <token>` and receive the `read:dice` scope. The protected-resource metadata is served at `/.well-known/oauth-protected-resource`. The current public page is still a standalone static `index.html`; deploying these routes requires the Vercel project to use a Next.js build/runtime rather than static-only hosting.
+
+### Workflow oversight
+
+The operational flow is managed across the full quote-to-delivery cycle, with finance and risk controls layered in at key stages.
+
+- [Workflow overview](./docs/workflow-overview.md) – the end-to-end operating control view
+- [Organizational operating model](./docs/organizational-operating-model.md) – accountability, handoffs, controls and performance measures
+- [Zoho Books automation](./docs/zoho-books-automation.md) – quote-to-invoice and CRM/Books control rules
+- [CFO audits](./docs/cfo-audits.md) – weekly and monthly finance review cadence
+- [VOC certificate and inspection workflow](./docs/voc-inspection-workflow.md) – Bureau Veritas Form 6.6, remote inspection consent, evidence gates and bot assignments
+
 Planned structure:
 
 - `/docs` – processes, checklists and SOPs
 - `/insurance` – questionnaires, policy notes and claim procedures
 - `/tracking` – tracking and security requirements
 - `/slack-ops` – Slack control-plane channel structure and workflows (building, bots, prospecting, signups)
+- VOC source documents – retain the supplied Form 6.6, completed RFC, and signed consent in the restricted customer/job record; do not commit them to this public repository
 
 ---
 

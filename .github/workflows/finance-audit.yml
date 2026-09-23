@@ -1,0 +1,50 @@
+name: Finance audit bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      cadence:
+        description: "Audit cadence"
+        required: true
+        type: choice
+        options: [weekly, monthly]
+        default: weekly
+      create_issue:
+        description: "Create or update a GitHub issue with the result"
+        required: true
+        type: boolean
+        default: false
+  schedule:
+    - cron: "0 8 * * 1"
+    - cron: "0 8 1 * *"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download private bot knowledge
+        env:
+          KNOWLEDGE_REPO_TOKEN: ${{ secrets.KNOWLEDGE_REPO_TOKEN }}
+          KNOWLEDGE_REPO_REF: master
+        run: bash scripts/download_knowledge.sh
+      - name: Run finance audit bot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cadence="${{ inputs.cadence }}"
+          if [[ -z "$cadence" ]]; then
+            if [[ "${{ github.event.schedule }}" == "0 8 1 * *" ]]; then cadence=monthly; else cadence=weekly; fi
+          fi
+          args=(--bot "cfo-$cadence" --cases-dir ops/cases)
+          if [[ "${{ inputs.create_issue }}" == "true" || "${{ github.event_name }}" == "schedule" ]]; then
+            args+=(--create-issue)
+          fi
+          python3 scripts/run_bots.py "${args[@]}"

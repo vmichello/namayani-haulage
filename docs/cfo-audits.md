@@ -17,6 +17,7 @@ This is an exception review and management pack. It is **not** a statutory audit
 - Do not create or send invoices.
 - If Zoho Books is not exported into the run, output DATA GAP + evidence list.
 - At most a few new Linear issues; no duplicate titles.
+- VOC cases are reviewed against the [VOC certificate and inspection workflow](./voc-inspection-workflow.md); missing certificates, open NCRs, or unsupported financial values are exceptions.
 
 ## Evidence Victor should drop in when asked
 

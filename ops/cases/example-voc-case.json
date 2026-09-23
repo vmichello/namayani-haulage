@@ -1,0 +1,33 @@
+{
+  "case_id": "VOC-EXAMPLE-001",
+  "destination": "Zimbabwe",
+  "bv_reference": "PENDING",
+  "remote_inspection": {
+    "requested": true,
+    "consent_on_file": false,
+    "site_contact_on_file": false,
+    "connectivity_confirmed": false,
+    "eligibility_confirmed": false
+  },
+  "evidence": {
+    "form_6_6": false,
+    "proforma_invoice": false,
+    "purchase_order": false,
+    "goods_list_hs_codes": false,
+    "conformity_documents": false,
+    "signed_remote_consent": false,
+    "certificate_or_ncr": false
+  },
+  "commercial": {
+    "declared_total": null,
+    "freight": null,
+    "insurance_value": null,
+    "incoterm": null
+  },
+  "status": "VOC intake",
+  "dispatch_requested": false,
+  "carrier_confirmed": false,
+  "git_confirmed": false,
+  "tracking_confirmed": false,
+  "border_documents_confirmed": false
+}

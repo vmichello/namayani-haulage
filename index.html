@@ -38,6 +38,36 @@
       border-radius: 999px;
       margin-bottom: 16px;
     }
+    .ops-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 24px 0 12px;
+    }
+    .ops-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px 18px 16px;
+    }
+    .ops-card h3 {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .ops-card p {
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-size: 0.96rem;
+    }
+    .ops-card a {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 600;
+      text-decoration: none;
+    }
     h1 { font-size: clamp(2rem, 5vw, 2.6rem); line-height: 1.15; margin-bottom: 12px; }
     h2 {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -102,6 +132,32 @@
       Dedicated and arranged road freight across SADC, especially South Africa to Zimbabwe via Beitbridge.
       High-value, project and energy cargo. We reply within one business day.
     </p>
+
+    <div class="card">
+      <h2>Operations workflow oversight</h2>
+      <div class="ops-grid">
+        <div class="ops-card">
+          <h3>Quote to load</h3>
+          <p>Lead, estimate, deposit checks, and operational sign-off before invoice release.</p>
+          <a href="./docs/zoho-books-automation.md">View workflow</a>
+        </div>
+        <div class="ops-card">
+          <h3>Dispatch security</h3>
+          <p>Carrier selection, route risk, GPS tracking, escort planning and live intervention.</p>
+          <a href="./docs/workflow-overview.md">View control points</a>
+        </div>
+        <div class="ops-card">
+          <h3>Finance controls</h3>
+          <p>Weekly and monthly checks for cash, AR/AP, and process compliance.</p>
+          <a href="./docs/cfo-audits.md">Review audit cadence</a>
+        </div>
+        <div class="ops-card">
+          <h3>Operating governance</h3>
+          <p>End-to-end management of handoffs for sales, security, compliance and finance.</p>
+          <a href="./docs/workflow-overview.md">Open overview</a>
+        </div>
+      </div>
+    </div>
 
     <div class="card">
       <div id="quote-success" class="banner ok" hidden>

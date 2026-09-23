@@ -1,0 +1,45 @@
+name: VOC compliance bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      case:
+        description: "Path to a sanitized case JSON file"
+        required: true
+        default: "ops/cases/example-voc-case.json"
+      bot:
+        description: "Bot role to run"
+        required: true
+        type: choice
+        options: [voc-intake, voc-compliance, remote-inspection, dispatch-risk]
+        default: voc-compliance
+      create_issue:
+        description: "Create or update a GitHub issue with the result"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download private bot knowledge
+        env:
+          KNOWLEDGE_REPO_TOKEN: ${{ secrets.KNOWLEDGE_REPO_TOKEN }}
+          KNOWLEDGE_REPO_REF: master
+        run: bash scripts/download_knowledge.sh
+      - name: Run VOC compliance bot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          args=(--bot "${{ inputs.bot }}" --case "${{ inputs.case }}")
+          if [[ "${{ inputs.create_issue }}" == "true" ]]; then args+=(--create-issue); fi
+          python3 scripts/run_bots.py "${args[@]}"
