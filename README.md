@@ -91,17 +91,10 @@ The MCP route source is at [`app/api/mcp/route.ts`](./app/api/mcp/route.ts) and 
 
 ### Workflow oversight
 
-The operational flow is managed across the full quote-to-delivery cycle, with finance and risk controls layered in at key stages.
+Operating documents (quote-to-invoice automation, control points, finance audit cadence, VOC inspection, and the operating model) are kept off this public site. Requests to `/docs` return HTTP 410.
 
-- [Workflow overview](./docs/workflow-overview.md) – the end-to-end operating control view
-- [Organizational operating model](./docs/organizational-operating-model.md) – accountability, handoffs, controls and performance measures
-- [Zoho Books automation](./docs/zoho-books-automation.md) – quote-to-invoice and CRM/Books control rules
-- [CFO audits](./docs/cfo-audits.md) – weekly and monthly finance review cadence
-- [VOC certificate and inspection workflow](./docs/voc-inspection-workflow.md) – Bureau Veritas Form 6.6, remote inspection consent, evidence gates and bot assignments
+Planned structure for private records only:
 
-Planned structure:
-
-- `/docs` – processes, checklists and SOPs
 - `/insurance` – questionnaires, policy notes and claim procedures
 - `/tracking` – tracking and security requirements
 - `/slack-ops` – Slack control-plane channel structure and workflows (building, bots, prospecting, signups)
