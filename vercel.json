@@ -9,7 +9,7 @@
   ],
   "routes": [
     {
-      "src": "/docs(/.*)?",
+      "src": "/docs(/.*)?$",
       "status": 410,
       "headers": {
         "Content-Type": "text/plain; charset=utf-8",

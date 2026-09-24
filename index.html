@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Logistics inquiry | Namayani Haulage</title>
-  <meta name="description" content="Request a Namayani Haulage quote. Cross-border SA-Zimbabwe and SADC road freight for high-value and project cargo." />
+  <title>Cross-Border Road Freight Quote | Namayani Haulage</title>
+  <meta name="description" content="Request a road freight quote across SADC, with a South Africa to Zimbabwe (Beitbridge) focus for high-value, project and energy / BESS cargo." />
+  <meta property="og:title" content="Cross-Border Road Freight Quote | Namayani Haulage" />
+  <meta property="og:description" content="Request a road freight quote across SADC, with a South Africa to Zimbabwe (Beitbridge) focus for high-value, project and energy / BESS cargo." />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <style>
     :root {
       --bg: #0b0f14;
@@ -265,6 +269,27 @@
           btn.disabled = false;
         });
       });
+    })();
+  </script>
+  <script>
+    (function () {
+      var cargo = "";
+      try {
+        cargo = (new URLSearchParams(window.location.search).get("cargo") || "").trim().toLowerCase();
+      } catch (e) {
+        return;
+      }
+      var values = {
+        bess: "BESS / lithium energy storage",
+        solar: "Solar equipment"
+      };
+      if (!Object.prototype.hasOwnProperty.call(values, cargo)) return;
+      var field = document.getElementById("cargo_type");
+      var quote = document.getElementById("quote");
+      if (!field || !quote) return;
+      field.value = values[cargo];
+      if (field.value !== values[cargo]) return;
+      quote.scrollIntoView({ block: "start" });
     })();
   </script>
 </body>
