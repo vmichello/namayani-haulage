@@ -91,7 +91,7 @@ The MCP route source is at [`app/api/mcp/route.ts`](./app/api/mcp/route.ts) and 
 
 ### Workflow oversight
 
-Operating documents (quote-to-invoice automation, control points, finance audit cadence, VOC inspection, and the operating model) are kept off this public site. Requests to `/docs` return HTTP 410.
+Operating documents (quote-to-invoice automation, control points, finance audit cadence, VOC inspection, and the operating model) are kept off this public site. Requests to `/docs` and `/ops` return HTTP 410. Live job cases under `ops/cases` are internal records and are not part of the public site.
 
 Planned structure for private records only:
 
