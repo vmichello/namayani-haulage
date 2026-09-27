@@ -785,6 +785,8 @@
         draggable: ".kanban-item",
         ghostClass: "kanban-ghost",
         emptyInsertThreshold: 48,
+        forceFallback: true,
+        fallbackOnBody: true,
         onEnd: persistBoardFromDom,
       }));
     });
@@ -826,7 +828,7 @@
                 el("div", { class: "text-secondary" }, ["SA–Zimbabwe via Beitbridge"]),
               ]),
               el("div", { class: "col-auto" }, [
-                el("span", { class: "badge bg-secondary-lt me-1" }, [state.jobs.length + " jobs"]),
+                el("span", { class: "badge bg-secondary-lt me-1" }, [state.jobs.length + (state.jobs.length === 1 ? " job" : " jobs")]),
                 el("span", { class: holds ? "badge bg-red-lt" : "badge bg-green-lt" }, [holds ? holds + " in a gate" : "All clear"]),
               ]),
             ]),

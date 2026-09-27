@@ -68,9 +68,14 @@ textarea.form-control {
 
 .desk-lane .card-header {
   color: #c9a227;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  padding: 8px 10px;
+}
+
+.desk-lane .card-body {
+  padding: 8px;
 }
 
 .lane-list {
@@ -82,6 +87,7 @@ textarea.form-control {
 
 .kanban-item {
   display: flex;
+  flex-direction: column;
   align-items: stretch;
   gap: 0;
   background: rgba(255, 255, 255, 0.03);
@@ -90,11 +96,11 @@ textarea.form-control {
 }
 
 .drag-handle {
-  flex: 0 0 44px;
-  width: 44px;
+  flex: 0 0 auto;
+  width: 100%;
   min-height: 44px;
   border: 0;
-  border-right: 1px solid var(--tblr-border-color);
+  border-bottom: 1px solid var(--tblr-border-color);
   background: transparent;
   color: #c9a227;
   cursor: grab;
@@ -113,6 +119,12 @@ textarea.form-control {
   border: 0;
   color: inherit;
   padding: 8px 10px;
+}
+
+.kanban-open strong {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .kanban-ghost { opacity: 0.45; }
@@ -179,7 +191,7 @@ textarea.form-control {
     padding-bottom: 8px;
   }
   .desk-lane {
-    flex: 1 0 240px;
-    max-width: 360px;
+    flex: 1 1 0;
+    min-width: 168px;
   }
 }
