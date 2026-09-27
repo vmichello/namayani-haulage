@@ -143,6 +143,7 @@
     }
     .chip.setup { color: var(--orange); background: #fff1e8; border: 1px solid #f0c2a8; }
     .chip.ready { color: var(--green); background: #e7f2ea; border: 1px solid #b7d4c2; }
+    .chip.paused { color: var(--muted); background: var(--paper-deep); border: 1px solid var(--line); }
     .map-stage {
       position: relative;
       height: 300px;
@@ -376,6 +377,95 @@
   </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous" onerror="window.__leafletFailed=true"></script>
+  <script src="/desk/connectors/runtime.js"></script>
+  <script>
+    (function () {
+      var runtime = window.NamayaniConnectors;
+      if (!runtime || typeof runtime.routeFromQuote !== "function" || typeof runtime.run !== "function") return;
+
+      function paintChip(panelId, status) {
+        var panel = document.getElementById(panelId);
+        if (!panel) return;
+        var chip = panel.querySelector(".chip");
+        if (!chip) return;
+        var kind = status === "needs_setup" ? "setup" : status === "paused" ? "paused" : "ready";
+        var label = status === "needs_setup" ? "Needs setup" : status === "paused" ? "Paused" : "Ready";
+        chip.className = "chip " + kind;
+        chip.textContent = label;
+      }
+
+      function fillRoute(route) {
+        var list = document.getElementById("delivery-lines");
+        var line = document.querySelector("#books .link-line");
+        if (line) {
+          line.textContent = "";
+          line.append("Quote ");
+          var strong = document.createElement("strong");
+          strong.id = "quote-id";
+          strong.textContent = route ? route.quoteId : "";
+          line.appendChild(strong);
+          line.append(route && route.jobId ? " linked to job " + route.jobId + "." : ".");
+        }
+        if (!list) return;
+        while (list.firstChild) list.removeChild(list.firstChild);
+        if (!route) return;
+        route.stops.forEach(function (stop) {
+          var item = document.createElement("li");
+          item.setAttribute("data-place", stop.label);
+          item.setAttribute("data-lat", String(stop.lat));
+          item.setAttribute("data-lng", String(stop.lng));
+          item.textContent = stop.label;
+          list.appendChild(item);
+        });
+      }
+
+      var books = runtime.run("zoho-books", { env: {} });
+      fillRoute(runtime.routeFromQuote(books.quote));
+
+      function paintPanels(env, cases) {
+        var ctx = { env: env || {}, cases: cases || [] };
+        var email = runtime.run("email", ctx);
+        var booksResult = runtime.run("zoho-books", ctx);
+        var ads = runtime.run("google-ads", ctx);
+        var analytics = runtime.run("google-analytics", ctx);
+        var files = runtime.run("local-files", ctx);
+        var maps = runtime.run("maps", { env: ctx.env, quote: booksResult.quote });
+        paintChip("mail", email.status);
+        paintChip("books", booksResult.status);
+        paintChip("files", files.status);
+        var adsStatus = ads.status === "needs_setup" || analytics.status === "needs_setup"
+          ? "needs_setup"
+          : ads.status === "paused" || analytics.status === "paused"
+            ? "paused"
+            : "ready";
+        paintChip("ads", adsStatus);
+        var mailEmpty = document.querySelector("#mail .empty");
+        if (mailEmpty) mailEmpty.textContent = email.detail;
+        var booksFine = document.querySelector("#books .fine");
+        if (booksFine) booksFine.textContent = booksResult.detail;
+        var adsCopy = document.querySelectorAll("#ads .empty-state p");
+        if (adsCopy[0]) adsCopy[0].textContent = ads.detail;
+        if (adsCopy[1]) adsCopy[1].textContent = analytics.detail;
+        var filesLine = document.querySelector("#files .link-line");
+        if (filesLine) {
+          var ids = (files.cases || []).map(function (item) {
+            return item && item.job && item.job.case_id;
+          }).filter(Boolean);
+          filesLine.textContent = ids.length ? files.detail + " Cases: " + ids.join(", ") + "." : files.detail;
+        }
+        var source = document.getElementById("map-source");
+        if (source && maps.route && maps.route.stops.length) {
+          source.textContent = "Drawn from the Zoho Books delivery lines on quote " + maps.route.quoteId + ". " + maps.route.stops.map(function (stop) {
+            return stop.label;
+          }).join(" → ") + ".";
+        } else if (source && !maps.route) {
+          source.textContent = "No delivery lines, so the map does not draw a route.";
+        }
+      }
+
+      paintPanels({}, []);
+    })();
+  </script>
   <script>
     (function () {
       var stage = document.getElementById("map-stage");

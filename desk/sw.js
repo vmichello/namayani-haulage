@@ -1,5 +1,5 @@
-const CACHE = "namayani-desk-v2";
-const SHELL = ["/desk", "/desk/styles.css", "/desk/gates.js", "/desk/connectors/template.js", "/desk/connectors/registry.js", "/desk/app.js", "/favicon.svg"];
+const CACHE = "namayani-desk-v3";
+const SHELL = ["/desk", "/desk/styles.css", "/desk/gates.js", "/desk/connectors/runtime.js", "/desk/connectors/template.js", "/desk/connectors/registry.js", "/desk/app.js", "/favicon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -68,6 +68,7 @@ assert.equal(assess(clear).lane, "clear");
 const deskContext = { globalThis: {} };
 deskContext.globalThis = deskContext;
 vm.createContext(deskContext);
+load(path.join(__dirname, "connectors/runtime.js"), deskContext);
 load(path.join(__dirname, "connectors/template.js"), deskContext);
 assert.throws(() => deskContext.NamayaniDesk.defineConnector({ id: "broken" }), /missing/);
 load(path.join(__dirname, "connectors/registry.js"), deskContext);
