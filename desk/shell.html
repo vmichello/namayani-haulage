@@ -155,36 +155,22 @@
     #route-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
     .map-stage.is-fallback #map { display: none; }
     .map-stage:not(.is-fallback) #route-svg { display: none; }
-    .route-id {
-      position: absolute;
-      left: 12px;
-      bottom: 12px;
-      z-index: 800;
-      margin: 0;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: var(--green);
-      color: #f6f0e6;
-      font-family: var(--sans);
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      pointer-events: none;
-      box-shadow: 0 6px 16px rgba(22, 51, 40, 0.28);
-    }
-    .map-stage:not(.is-fallback) .route-id { display: none; }
+    .route-id { display: none; }
     .leaflet-div-icon.quote-marker { background: transparent; border: 0; }
     .quote-marker span {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 28px;
-      padding: 4px 10px;
+      box-sizing: border-box;
+      width: 96px;
+      height: 28px;
       border-radius: 999px;
       background: var(--green);
       color: #f6f0e6;
       font-family: var(--sans);
+      font-size: 13px;
       font-weight: 800;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
       white-space: nowrap;
       box-shadow: 0 6px 16px rgba(22, 51, 40, 0.28);
     }
@@ -325,7 +311,8 @@
               <text x="250" y="168">Beitbridge</text>
               <text x="430" y="70">Harare</text>
             </g>
-            <text x="250" y="230" fill="#163328" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">EST-0142</text>
+            <rect x="203" y="206" width="96" height="24" rx="12" fill="#163328"></rect>
+            <text x="251" y="223" fill="#f6f0e6" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">EST-0142</text>
           </svg>
           <p class="route-id" id="map-quote">EST-0142</p>
         </div>
@@ -449,24 +436,39 @@
         });
         lines.forEach(function (stop, i) {
           var p = pts[i];
-          var anchor = i === 1 ? "end" : "start";
-          var x = i === 1 ? p.x - 14 : p.x + 14;
+          var anchor = i === lines.length - 1 ? "end" : "start";
+          var x = anchor === "end" ? p.x - 14 : p.x + 14;
+          var y = i === 0 ? p.y + 22 : p.y - 14;
           add("text", {
             x: x.toFixed(1),
-            y: (p.y - 12).toFixed(1),
+            y: y.toFixed(1),
             fill: "#241c14",
             "font-family": "Palatino, Georgia, serif",
             "font-size": "18",
             "text-anchor": anchor
           }, stop.place);
         });
+        var fromPt = pts[0];
+        var toPt = pts[Math.min(1, pts.length - 1)];
+        var labelX = (fromPt.x + toPt.x) / 2;
+        var labelY = (fromPt.y + toPt.y) / 2;
+        var labelW = Math.max(84, quoteId.length * 8 + 20);
+        add("rect", {
+          x: (labelX - labelW / 2).toFixed(1),
+          y: (labelY - 12).toFixed(1),
+          width: labelW.toFixed(1),
+          height: "24",
+          rx: "12",
+          fill: "#163328"
+        });
         add("text", {
-          x: "56",
-          y: "332",
-          fill: "#163328",
+          x: labelX.toFixed(1),
+          y: (labelY + 5).toFixed(1),
+          fill: "#f6f0e6",
           "font-family": "Segoe UI, sans-serif",
-          "font-size": "16",
-          "font-weight": "700"
+          "font-size": "14",
+          "font-weight": "700",
+          "text-anchor": "middle"
         }, quoteId);
       }
 
@@ -489,30 +491,45 @@
           var latlngs = lines.map(function (stop) { return [stop.lat, stop.lng]; });
           window.L.polyline(latlngs, { color: "#f4efe4", weight: 10, opacity: 0.92 }).addTo(map);
           var line = window.L.polyline(latlngs, { color: "#163328", weight: 4 }).addTo(map);
-          var dirs = ["right", "right", "left"];
+          var labels = [
+            { direction: "bottom", offset: [0, 10] },
+            { direction: "right", offset: [12, 0] },
+            { direction: "top", offset: [0, -10] }
+          ];
           lines.forEach(function (stop, i) {
+            var label = labels[i] || { direction: "top", offset: [0, -10] };
             window.L.circleMarker([stop.lat, stop.lng], {
               radius: 8,
               color: "#e25b1a",
               weight: 3,
               fillColor: "#fffdf8",
               fillOpacity: 1
-            }).addTo(map).bindTooltip(stop.place, { permanent: true, direction: dirs[i] || "top", offset: [0, 0] });
+            }).addTo(map).bindTooltip(stop.place, { permanent: true, direction: label.direction, offset: label.offset });
           });
           var from = lines[0];
           var to = lines[1] || lines[0];
-          window.L.marker([(from.lat + to.lat) / 2, (from.lng + to.lng) / 2 - 0.15], {
+          var safeQuote = quoteId.replace(/[&<>"']/g, function (ch) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+          });
+          window.L.marker([
+            from.lat + (to.lat - from.lat) * 0.5,
+            from.lng + (to.lng - from.lng) * 0.5
+          ], {
             interactive: false,
             keyboard: false,
             icon: window.L.divIcon({
               className: "quote-marker",
-              html: "<span>" + quoteId + "</span>",
+              html: "<span>" + safeQuote + "</span>",
               iconSize: [96, 28],
-              iconAnchor: [96, 14]
+              iconAnchor: [48, 14]
             })
           }).addTo(map);
-          map.fitBounds(line.getBounds().pad(0.45));
-          setTimeout(function () { map.invalidateSize(); }, 80);
+          function frameRoute() {
+            map.invalidateSize();
+            map.fitBounds(line.getBounds().pad(0.55));
+          }
+          frameRoute();
+          setTimeout(frameRoute, 80);
         } catch (err) {
           showFallback();
         }
