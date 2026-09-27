@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#f3ecdf" />
+  <title>Namayani freight desk shell</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+  <style>
+    :root {
+      --paper: #f3ecdf;
+      --paper-deep: #e7dcc8;
+      --card: #fffdf8;
+      --ink: #241c14;
+      --muted: #6b5e51;
+      --line: #e0d3c0;
+      --orange: #e25b1a;
+      --green: #163328;
+      --green-ink: #1d4a34;
+      --serif: "Iowan Old Style", Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      --sans: "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(900px 420px at 0% -10%, #fff8ee 0%, transparent 55%),
+        var(--paper);
+      color: var(--ink);
+      font-family: var(--serif);
+      line-height: 1.45;
+    }
+    a { color: var(--green-ink); }
+    button, a, input, .tabbar a { font-size: 16px; }
+    a, button { min-height: 44px; }
+    input, select, textarea {
+      font-size: 16px;
+      min-height: 44px;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--card);
+      color: var(--ink);
+      font-family: var(--sans);
+    }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 20px 16px 28px; }
+    .mast { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 20px; align-items: flex-end; margin-bottom: 16px; }
+    .eyebrow, .kicker, .chip, .fine, .tabbar, .panel-head, dt, .map-source, .empty, label {
+      font-family: var(--sans);
+    }
+    .eyebrow {
+      margin: 0 0 4px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--green-ink);
+      font-weight: 700;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(2.4rem, 6vw, 3.6rem);
+      line-height: 0.92;
+      letter-spacing: -0.035em;
+      font-weight: 700;
+    }
+    .shell-note { margin: 8px 0 0; max-width: 36em; color: var(--muted); font-size: 1.05rem; }
+    .desk-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 14px;
+      border: 1px solid var(--green);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--green);
+      text-decoration: none;
+      font-family: var(--sans);
+      font-weight: 650;
+    }
+    .docket {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 7px solid var(--orange);
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(70, 42, 16, 0.06);
+      padding: 16px 16px 14px;
+      margin-bottom: 16px;
+    }
+    .docket-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 16px; align-items: center; }
+    .job-id { margin: 0; font-size: clamp(1.7rem, 3vw, 2.4rem); letter-spacing: -0.03em; line-height: 1; }
+    .dest { margin: 4px 0 0; font-size: 1.15rem; }
+    .hold {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin: 0;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: var(--orange);
+      color: #fffaf3;
+      font-family: var(--sans);
+      font-weight: 750;
+      letter-spacing: 0.01em;
+    }
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+      margin: 14px 0 0;
+    }
+    .facts div { min-width: 0; }
+    dt { margin: 0; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    dd { margin: 2px 0 0; font-size: 1.02rem; }
+    .fine { margin: 12px 0 0; color: var(--muted); font-size: 0.92rem; }
+    .panels { display: grid; gap: 16px; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(70, 42, 16, 0.05);
+      padding: 14px 14px 16px;
+      min-width: 0;
+      scroll-margin-top: 12px;
+      scroll-margin-bottom: 88px;
+    }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .panel h2 { margin: 0; font-size: 1.55rem; letter-spacing: -0.03em; line-height: 1.1; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .chip.setup { color: var(--orange); background: #fff1e8; border: 1px solid #f0c2a8; }
+    .chip.ready { color: var(--green); background: #e7f2ea; border: 1px solid #b7d4c2; }
+    .chip.paused { color: var(--muted); background: var(--paper-deep); border: 1px solid var(--line); }
+    .need-fields { margin: 8px 0 0; font-family: var(--sans); font-size: 0.92rem; color: var(--muted); }
+    .configure-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+    .configure-list li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+    .configure-list .name { font-family: var(--sans); font-weight: 700; min-width: 9.5rem; }
+    .configure-list .fine { margin: 0; flex: 1 1 16rem; }
+    .map-stage {
+      position: relative;
+      height: 300px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--paper-deep);
+    }
+    #map { position: absolute; inset: 0; background: #e7dcc8; }
+    #route-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .map-stage.is-fallback #map { display: none; }
+    .map-stage:not(.is-fallback) #route-svg { display: none; }
+    .route-id { display: none; }
+    .leaflet-div-icon.quote-marker { background: transparent; border: 0; }
+    .quote-marker span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      width: 96px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--green);
+      color: #f6f0e6;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      box-shadow: 0 6px 16px rgba(22, 51, 40, 0.28);
+    }
+    .map-source { margin: 8px 0 0; color: var(--muted); font-size: 0.92rem; }
+    .leaflet-container { height: 100%; width: 100%; font-family: var(--sans); background: #e7dcc8; }
+    .leaflet-control-zoom a {
+      width: 44px !important;
+      height: 44px !important;
+      line-height: 44px !important;
+      font-size: 20px !important;
+    }
+    .leaflet-tooltip {
+      font-family: var(--sans);
+      font-weight: 700;
+      color: var(--ink);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .stops { margin: 8px 0 0; padding-left: 1.2rem; }
+    .stops li { margin: 4px 0; font-size: 1.08rem; }
+    .link-line { margin: 0; }
+    .slot-box, .empty-state {
+      border: 1.5px dashed #d2c3ae;
+      border-radius: 12px;
+      background: #fbf6ee;
+      padding: 14px;
+      min-height: 88px;
+    }
+    .slot-box p, .empty-state p { margin: 0; }
+    .empty { color: var(--muted); margin-top: 4px !important; }
+    .slot-label { display: block; margin-top: 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    .tabbar {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 4px;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      margin: 0;
+      padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+      background: var(--green);
+    }
+    .tabbar a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 4px;
+      border-radius: 8px;
+      color: #f3ecdf;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .tabbar a[aria-current="page"] { background: rgba(255, 250, 243, 0.16); }
+    @media (max-width: 899px) {
+      body { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+    }
+    @media (min-width: 800px) {
+      .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .wrap { padding: 28px 24px 36px; }
+    }
+    @media (min-width: 900px) {
+      .tabbar { display: none; }
+      body { padding-bottom: 0; }
+      .map-stage { height: 100%; min-height: 440px; }
+      #maps { display: flex; flex-direction: column; }
+      .map-stage { flex: 1; }
+      .panels {
+        grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.9fr);
+        align-items: stretch;
+      }
+      #maps { grid-column: 1; grid-row: 1 / span 2; }
+      #mail { grid-column: 2; grid-row: 1; }
+      #books { grid-column: 2; grid-row: 2; }
+      #ads { grid-column: 1; grid-row: 3; }
+      #files { grid-column: 2; grid-row: 3; }
+      #configure { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="mast">
+      <div>
+        <p class="eyebrow">Namayani Haulage</p>
+        <h1>Freight desk</h1>
+        <p class="shell-note">Shell. Another program supplies the live behaviour.</p>
+      </div>
+      <a class="desk-link" href="/desk">Working desk</a>
+    </header>
+
+    <article class="docket" aria-label="Job VOC-EXAMPLE-001">
+      <div class="docket-top">
+        <div>
+          <p class="kicker eyebrow">Job</p>
+          <h2 class="job-id">VOC-EXAMPLE-001</h2>
+          <p class="dest">Destination <strong>Zimbabwe</strong></p>
+        </div>
+        <p class="hold">Compliance hold</p>
+      </div>
+      <dl class="facts">
+        <div><dt>Status</dt><dd>VOC intake</dd></div>
+        <div><dt>Bureau Veritas reference</dt><dd>PENDING</dd></div>
+        <div><dt>Remote inspection</dt><dd>Requested</dd></div>
+        <div><dt>Remote prerequisites</dt><dd>Not confirmed</dd></div>
+        <div><dt>Evidence</dt><dd>Not recorded</dd></div>
+        <div><dt>Dispatch requested</dt><dd>No</dd></div>
+        <div><dt>Commercial</dt><dd>Not recorded</dd></div>
+      </dl>
+      <p class="fine">Consent, site contact, connectivity, and eligibility are not confirmed. Carrier, GIT, tracking, and border documents are not confirmed. Declared total, freight, insurance value, and incoterm are not recorded.</p>
+    </article>
+
+    <main class="panels">
+      <section class="panel" id="maps" aria-labelledby="maps-title">
+        <div class="panel-head">
+          <h2 id="maps-title">Maps</h2>
+          <span class="chip ready" data-status="ready">Ready</span>
+        </div>
+        <div class="map-stage is-fallback" id="map-stage">
+          <div id="map" role="region" aria-label="Quote route map"></div>
+          <svg id="route-svg" viewBox="0 0 640 360" role="img" aria-label="Route EST-0142, Johannesburg to Beitbridge to Harare">
+            <rect width="640" height="360" fill="#efe4d2"></rect>
+            <g stroke="#e0d3c0" stroke-width="1">
+              <path d="M40 80 H600 M40 160 H600 M40 240 H600 M160 30 V330 M320 30 V330 M480 30 V330"></path>
+            </g>
+            <path d="M120 267 L382 178 L520 81" fill="none" stroke="#f6f0e6" stroke-width="10" stroke-linejoin="round"></path>
+            <path id="route-path" d="M120 267 L382 178 L520 81" fill="none" stroke="#163328" stroke-width="4" stroke-linejoin="round"></path>
+            <g fill="#e25b1a" stroke="#fffdf8" stroke-width="3">
+              <circle cx="120" cy="267" r="8"></circle>
+              <circle cx="382" cy="178" r="8"></circle>
+              <circle cx="520" cy="81" r="8"></circle>
+            </g>
+            <g fill="#241c14" font-family="Palatino, Georgia, serif" font-size="18">
+              <text x="136" y="262">Johannesburg</text>
+              <text x="250" y="168">Beitbridge</text>
+              <text x="430" y="70">Harare</text>
+            </g>
+            <rect x="203" y="206" width="96" height="24" rx="12" fill="#163328"></rect>
+            <text x="251" y="223" fill="#f6f0e6" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">EST-0142</text>
+          </svg>
+          <p class="route-id" id="map-quote">EST-0142</p>
+        </div>
+        <p class="map-source" id="map-source">Drawn from the Zoho Books delivery lines on quote EST-0142. Johannesburg → Beitbridge → Harare.</p>
+      </section>
+
+      <section class="panel" id="mail" aria-labelledby="mail-title">
+        <div class="panel-head">
+          <h2 id="mail-title">Mail</h2>
+          <span class="chip setup">Needs setup</span>
+        </div>
+        <div class="slot-box">
+          <p><strong>Inquiries</strong></p>
+          <p class="empty">No live inbox.</p>
+        </div>
+        <p class="need-fields" id="mail-fields">Needs GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN.</p>
+      </section>
+
+      <section class="panel" id="books" aria-labelledby="books-title">
+        <div class="panel-head">
+          <h2 id="books-title">Zoho Books</h2>
+          <span class="chip setup">Needs setup</span>
+        </div>
+        <p class="link-line">Quote <strong id="quote-id">EST-0142</strong> linked to job VOC-EXAMPLE-001.</p>
+        <ol class="stops" id="delivery-lines">
+          <li data-place="Johannesburg" data-lat="-26.2041" data-lng="28.0473">Johannesburg</li>
+          <li data-place="Beitbridge" data-lat="-22.2167" data-lng="30">Beitbridge</li>
+          <li data-place="Harare" data-lat="-17.8252" data-lng="31.0335">Harare</li>
+        </ol>
+        <p class="fine">Delivery lines above are the route. No Books call is made from this shell.</p>
+        <p class="need-fields" id="books-fields">Needs ZOHO_BOOKS_ORG_ID, ZOHO_BOOKS_CLIENT_ID, ZOHO_BOOKS_CLIENT_SECRET, ZOHO_BOOKS_REFRESH_TOKEN.</p>
+      </section>
+
+      <section class="panel" id="ads" aria-labelledby="ads-title">
+        <div class="panel-head">
+          <h2 id="ads-title">Google Ads and Analytics</h2>
+          <span class="chip setup">Needs setup</span>
+        </div>
+        <div class="empty-state">
+          <p>Read-only slot.</p>
+          <p class="empty">No campaign or analytics figures in this shell.</p>
+        </div>
+        <p class="need-fields" id="ads-fields">Needs GOOGLE_ADS_CUSTOMER_ID, GA4_PROPERTY_ID.</p>
+      </section>
+
+      <section class="panel" id="files" aria-labelledby="files-title">
+        <div class="panel-head">
+          <h2 id="files-title">Local files</h2>
+          <span class="chip ready">Ready</span>
+        </div>
+        <p class="link-line">Slot for case JSON. Ready is a shell label only.</p>
+        <label class="slot-label" for="case-json">Case JSON</label>
+        <input id="case-json" type="file" accept=".json,application/json" />
+      </section>
+
+      <section class="panel" id="configure" aria-labelledby="configure-title">
+        <div class="panel-head">
+          <h2 id="configure-title">Configure</h2>
+        </div>
+        <p class="fine">Each connector, the server fields it needs, and the status from the runtime. Paused means those fields are present and live calls stay off.</p>
+        <ul class="configure-list" id="configure-list"></ul>
+      </section>
+    </main>
+  </div>
+
+  <nav class="tabbar" aria-label="Shell sections">
+    <a href="#maps" aria-current="page">Maps</a>
+    <a href="#mail">Mail</a>
+    <a href="#books">Books</a>
+    <a href="#ads">Ads</a>
+    <a href="#files">Files</a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous" onerror="window.__leafletFailed=true"></script>
+  <script src="/desk/connectors/runtime.js"></script>
+  <script>
+    (function () {
+      var runtime = window.NamayaniConnectors;
+      if (!runtime || typeof runtime.routeFromQuote !== "function" || typeof runtime.run !== "function") return;
+
+      function statusKind(status) {
+        return status === "needs_setup" ? "setup" : status === "paused" ? "paused" : "ready";
+      }
+
+      function statusLabel(status) {
+        return status === "needs_setup" ? "Needs setup" : status === "paused" ? "Paused" : "Ready";
+      }
+
+      function paintChip(panelId, status) {
+        var panel = document.getElementById(panelId);
+        if (!panel) return;
+        var chip = panel.querySelector(".chip");
+        if (!chip) return;
+        chip.className = "chip " + statusKind(status);
+        chip.textContent = statusLabel(status);
+        chip.setAttribute("data-status", status);
+      }
+
+      function fieldNote(row) {
+        if (!row) return "";
+        if (row.id === "github") return "Workflow paths only.";
+        if (!row.fields.length) return "No server fields.";
+        if (row.missing.length) return "Needs " + row.missing.join(", ") + ".";
+        return "Server fields present. Live calls stay off.";
+      }
+
+      function paintNeeds(nodeId, note) {
+        var node = document.getElementById(nodeId);
+        if (node) node.textContent = note;
+      }
+
+      function envFlags(body) {
+        var source = body && body.env && typeof body.env === "object" && !Array.isArray(body.env) ? body.env : {};
+        var env = {};
+        (runtime.ENV_FLAGS || []).forEach(function (key) {
+          env[key] = source[key] === true;
+        });
+        return env;
+      }
+
+      function renderConfigure(rows) {
+        var list = document.getElementById("configure-list");
+        if (!list) return;
+        while (list.firstChild) list.removeChild(list.firstChild);
+        rows.forEach(function (row) {
+          var item = document.createElement("li");
+          item.setAttribute("data-connector", row.id);
+          var name = document.createElement("span");
+          name.className = "name";
+          name.textContent = row.name;
+          var chip = document.createElement("span");
+          chip.className = "chip " + statusKind(row.status);
+          chip.textContent = statusLabel(row.status);
+          chip.setAttribute("data-status", row.status);
+          var note = document.createElement("span");
+          note.className = "fine";
+          note.textContent = fieldNote(row);
+          item.appendChild(name);
+          item.appendChild(chip);
+          item.appendChild(note);
+          list.appendChild(item);
+        });
+      }
+
+      function fillRoute(route) {
+        var list = document.getElementById("delivery-lines");
+        var line = document.querySelector("#books .link-line");
+        if (line) {
+          line.textContent = "";
+          line.append("Quote ");
+          var strong = document.createElement("strong");
+          strong.id = "quote-id";
+          strong.textContent = route ? route.quoteId : "";
+          line.appendChild(strong);
+          line.append(route && route.jobId ? " linked to job " + route.jobId + "." : ".");
+        }
+        if (!list) return;
+        while (list.firstChild) list.removeChild(list.firstChild);
+        if (!route) return;
+        route.stops.forEach(function (stop) {
+          var item = document.createElement("li");
+          item.setAttribute("data-place", stop.label);
+          item.setAttribute("data-lat", String(stop.lat));
+          item.setAttribute("data-lng", String(stop.lng));
+          item.textContent = stop.label;
+          list.appendChild(item);
+        });
+      }
+
+      var books = runtime.run("zoho-books", { env: {} });
+      fillRoute(runtime.routeFromQuote(books.quote));
+
+      function rowById(rows, id) {
+        for (var i = 0; i < rows.length; i++) {
+          if (rows[i].id === id) return rows[i];
+        }
+        return null;
+      }
+
+      function paintPanels(env, cases) {
+        var ctx = { env: env || {}, cases: cases || [] };
+        var booksResult = runtime.run("zoho-books", ctx);
+        var rows = runtime.configure({ env: ctx.env, cases: ctx.cases, quote: booksResult.quote });
+        var email = rowById(rows, "email");
+        var booksRow = rowById(rows, "zoho-books");
+        var ads = rowById(rows, "google-ads");
+        var analytics = rowById(rows, "google-analytics");
+        var files = runtime.run("local-files", ctx);
+        var maps = runtime.run("maps", { env: ctx.env, quote: booksResult.quote });
+        paintChip("maps", maps.status);
+        paintChip("mail", email.status);
+        paintChip("books", booksRow.status);
+        paintChip("files", files.status);
+        var adsStatus = ads.status === "needs_setup" || analytics.status === "needs_setup"
+          ? "needs_setup"
+          : ads.status === "paused" || analytics.status === "paused"
+            ? "paused"
+            : "ready";
+        paintChip("ads", adsStatus);
+        paintNeeds("mail-fields", fieldNote(email));
+        paintNeeds("books-fields", fieldNote(booksRow));
+        var adsMissing = ads.missing.concat(analytics.missing);
+        paintNeeds("ads-fields", adsMissing.length ? "Needs " + adsMissing.join(", ") + "." : "Server fields present. Live calls stay off.");
+        var mailEmpty = document.querySelector("#mail .empty");
+        if (mailEmpty) mailEmpty.textContent = email.detail;
+        var booksFine = document.querySelector("#books .fine");
+        if (booksFine) booksFine.textContent = booksResult.detail;
+        var adsCopy = document.querySelectorAll("#ads .empty-state p");
+        if (adsCopy[0]) adsCopy[0].textContent = ads.detail;
+        if (adsCopy[1]) adsCopy[1].textContent = analytics.detail;
+        var filesLine = document.querySelector("#files .link-line");
+        if (filesLine) {
+          var ids = (files.cases || []).map(function (item) {
+            return item && item.job && item.job.case_id;
+          }).filter(Boolean);
+          filesLine.textContent = ids.length ? files.detail + " Cases: " + ids.join(", ") + "." : files.detail;
+        }
+        var source = document.getElementById("map-source");
+        if (source && maps.route && maps.route.stops.length) {
+          source.textContent = "Drawn from the Zoho Books delivery lines on quote " + maps.route.quoteId + ". " + maps.route.stops.map(function (stop) {
+            return stop.label;
+          }).join(" → ") + ".";
+        } else if (source && !maps.route) {
+          source.textContent = "No delivery lines, so the map does not draw a route.";
+        }
+        renderConfigure(rows);
+      }
+
+      function applyServer(body) {
+        var env = envFlags(body);
+        var cases = body && Array.isArray(body.cases) ? body.cases : [];
+        paintPanels(env, cases);
+      }
+
+      paintPanels({}, []);
+      if (typeof fetch === "function") {
+        fetch("/api/desk", { headers: { Accept: "application/json" } })
+          .then(function (response) { return response.ok ? response.json() : null; })
+          .then(function (body) { if (body) applyServer(body); })
+          .catch(function () {});
+      }
+    })();
+  </script>
+  <script>
+    (function () {
+      var stage = document.getElementById("map-stage");
+      var svg = document.getElementById("route-svg");
+      var quoteId = (document.getElementById("quote-id").textContent || "").trim();
+      var lines = Array.prototype.map.call(document.querySelectorAll("#delivery-lines li"), function (li) {
+        return {
+          place: li.getAttribute("data-place") || li.textContent.trim(),
+          lat: Number(li.getAttribute("data-lat")),
+          lng: Number(li.getAttribute("data-lng"))
+        };
+      }).filter(function (stop) {
+        return stop.place && isFinite(stop.lat) && isFinite(stop.lng);
+      });
+
+      document.getElementById("map-quote").textContent = quoteId;
+      var caption = lines.map(function (stop) { return stop.place; }).join(" → ");
+      document.getElementById("map-source").textContent = "Drawn from the Zoho Books delivery lines on quote " + quoteId + ". " + caption + ".";
+
+      function paintSvg() {
+        if (!lines.length) return;
+        var minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+        lines.forEach(function (stop) {
+          minLat = Math.min(minLat, stop.lat);
+          maxLat = Math.max(maxLat, stop.lat);
+          minLng = Math.min(minLng, stop.lng);
+          maxLng = Math.max(maxLng, stop.lng);
+        });
+        var latPad = (maxLat - minLat) * 0.45 || 1;
+        var lngPad = (maxLng - minLng) * 0.45 || 1;
+        minLat -= latPad;
+        maxLat += latPad;
+        minLng -= lngPad;
+        maxLng += lngPad;
+        function xy(stop) {
+          return {
+            x: 48 + ((stop.lng - minLng) / (maxLng - minLng)) * 544,
+            y: 36 + ((maxLat - stop.lat) / (maxLat - minLat)) * 270
+          };
+        }
+        var pts = lines.map(xy);
+        var d = pts.map(function (p, i) { return (i ? "L" : "M") + p.x.toFixed(1) + " " + p.y.toFixed(1); }).join(" ");
+        var ns = "http://www.w3.org/2000/svg";
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        function add(name, attrs, text) {
+          var node = document.createElementNS(ns, name);
+          Object.keys(attrs).forEach(function (key) { node.setAttribute(key, attrs[key]); });
+          if (text) node.textContent = text;
+          svg.appendChild(node);
+          return node;
+        }
+        add("rect", { width: "640", height: "360", fill: "#efe4d2" });
+        add("path", { d: "M40 90 H600 M40 180 H600 M40 270 H600 M140 24 V336 M320 24 V336 M500 24 V336", stroke: "#e0d3c0", fill: "none" });
+        add("path", { d: d, fill: "none", stroke: "#f6f0e6", "stroke-width": "10", "stroke-linejoin": "round" });
+        add("path", { d: d, fill: "none", stroke: "#163328", "stroke-width": "4", "stroke-linejoin": "round" });
+        pts.forEach(function (p) {
+          add("circle", { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: "8", fill: "#e25b1a", stroke: "#fffdf8", "stroke-width": "3" });
+        });
+        lines.forEach(function (stop, i) {
+          var p = pts[i];
+          var anchor = i === lines.length - 1 ? "end" : "start";
+          var x = anchor === "end" ? p.x - 14 : p.x + 14;
+          var y = i === 0 ? p.y + 22 : p.y - 14;
+          add("text", {
+            x: x.toFixed(1),
+            y: y.toFixed(1),
+            fill: "#241c14",
+            "font-family": "Palatino, Georgia, serif",
+            "font-size": "18",
+            "text-anchor": anchor
+          }, stop.place);
+        });
+        var fromPt = pts[0];
+        var toPt = pts[Math.min(1, pts.length - 1)];
+        var labelX = (fromPt.x + toPt.x) / 2;
+        var labelY = (fromPt.y + toPt.y) / 2;
+        var labelW = Math.max(84, quoteId.length * 8 + 20);
+        add("rect", {
+          x: (labelX - labelW / 2).toFixed(1),
+          y: (labelY - 12).toFixed(1),
+          width: labelW.toFixed(1),
+          height: "24",
+          rx: "12",
+          fill: "#163328"
+        });
+        add("text", {
+          x: labelX.toFixed(1),
+          y: (labelY + 5).toFixed(1),
+          fill: "#f6f0e6",
+          "font-family": "Segoe UI, sans-serif",
+          "font-size": "14",
+          "font-weight": "700",
+          "text-anchor": "middle"
+        }, quoteId);
+      }
+
+      paintSvg();
+
+      function showFallback() {
+        stage.classList.add("is-fallback");
+      }
+
+      if (window.__leafletFailed || !window.L || typeof window.L.map !== "function" || !lines.length) {
+        showFallback();
+      } else {
+        stage.classList.remove("is-fallback");
+        try {
+          var map = window.L.map(document.getElementById("map"), { scrollWheelZoom: false });
+          window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          }).addTo(map);
+          var latlngs = lines.map(function (stop) { return [stop.lat, stop.lng]; });
+          window.L.polyline(latlngs, { color: "#f4efe4", weight: 10, opacity: 0.92 }).addTo(map);
+          var line = window.L.polyline(latlngs, { color: "#163328", weight: 4 }).addTo(map);
+          var labels = [
+            { direction: "bottom", offset: [0, 14] },
+            { direction: "right", offset: [28, -8] },
+            { direction: "top", offset: [0, -12] }
+          ];
+          lines.forEach(function (stop, i) {
+            var label = labels[i] || { direction: "top", offset: [0, -10] };
+            window.L.circleMarker([stop.lat, stop.lng], {
+              radius: 8,
+              color: "#e25b1a",
+              weight: 3,
+              fillColor: "#fffdf8",
+              fillOpacity: 1
+            }).addTo(map).bindTooltip(stop.place, { permanent: true, direction: label.direction, offset: label.offset });
+          });
+          var from = lines[0];
+          var to = lines[1] || lines[0];
+          var safeQuote = quoteId.replace(/[&<>"']/g, function (ch) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+          });
+          window.L.marker([
+            from.lat + (to.lat - from.lat) * 0.5,
+            from.lng + (to.lng - from.lng) * 0.5
+          ], {
+            interactive: false,
+            keyboard: false,
+            icon: window.L.divIcon({
+              className: "quote-marker",
+              html: "<span>" + safeQuote + "</span>",
+              iconSize: [96, 28],
+              iconAnchor: [48, 14]
+            })
+          }).addTo(map);
+          function frameRoute() {
+            map.invalidateSize();
+            map.fitBounds(line.getBounds().pad(0.55));
+          }
+          frameRoute();
+          setTimeout(frameRoute, 80);
+        } catch (err) {
+          showFallback();
+        }
+      }
+
+      var tabs = document.querySelectorAll(".tabbar a");
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          tabs.forEach(function (other) { other.removeAttribute("aria-current"); });
+          tab.setAttribute("aria-current", "page");
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -102,6 +102,18 @@ Planned structure for private records only:
 
 ---
 
+## Operations desk
+
+Victor's command centre is at [/desk](/desk). It reads sanitized jobs from `ops/cases` through `GET /api/desk` and keeps device-only jobs and edits in the browser. `desk/shell.html` is the portable shell another program can open in a browser and extend. Customer personal data stays out of the desk. Lanes come from `desk/gates.js`: intake, compliance, inspection, dispatch, finance, and clear.
+
+Dragging a card between lanes stores that placement on the device and still shows the gate status. Discard device edits returns the card to the gate lane.
+
+### Add a connector
+
+Copy [`desk/connectors/template.js`](desk/connectors/template.js), register one connector with `NamayaniDesk.defineConnector`, and add its script tag in `desk/index.html` before `app.js`. `resolve()` may read true/false flags on `ctx.env` only. Leave the connector paused until a live call is deliberate.
+
+---
+
 ## License
 
 Proprietary – Namayani Group (Pty) Ltd. All rights reserved.
