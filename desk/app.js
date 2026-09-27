@@ -694,14 +694,14 @@
       el("div", { class: "card-body" }, [
         el("p", { class: "text-secondary" }, ["Each connector, the server fields it needs, and the status from the runtime. Paused means those fields are present and live calls stay off."]),
         el("div", { class: "list-group list-group-flush" }, rows.map((row) => el("div", {
-          class: "list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 px-0",
+          class: "list-group-item d-flex justify-content-between align-items-start gap-3 px-0",
           "data-connector": row.id,
         }, [
           el("div", {}, [
             el("strong", { class: "me-2" }, [row.name]),
             el("span", { class: "text-secondary" }, [fieldNote(row)]),
           ]),
-          el("span", { class: "badge " + statusClass(row.status), "data-status": row.status }, [statusLabel(row.status)]),
+          el("span", { class: "badge flex-shrink-0 " + statusClass(row.status), "data-status": row.status }, [statusLabel(row.status)]),
         ]))),
       ]),
     ]);
