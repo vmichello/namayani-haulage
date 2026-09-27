@@ -157,9 +157,8 @@
     .map-stage:not(.is-fallback) #route-svg { display: none; }
     .route-id {
       position: absolute;
-      left: 50%;
-      top: 46%;
-      transform: translate(-50%, -50%);
+      left: 12px;
+      bottom: 12px;
       z-index: 800;
       margin: 0;
       padding: 6px 12px;
@@ -170,6 +169,23 @@
       font-weight: 800;
       letter-spacing: 0.06em;
       pointer-events: none;
+      box-shadow: 0 6px 16px rgba(22, 51, 40, 0.28);
+    }
+    .map-stage:not(.is-fallback) .route-id { display: none; }
+    .leaflet-div-icon.quote-marker { background: transparent; border: 0; }
+    .quote-marker span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--green);
+      color: #f6f0e6;
+      font-family: var(--sans);
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
       box-shadow: 0 6px 16px rgba(22, 51, 40, 0.28);
     }
     .map-source { margin: 8px 0 0; color: var(--muted); font-size: 0.92rem; }
@@ -444,15 +460,13 @@
             "text-anchor": anchor
           }, stop.place);
         });
-        var mid = pts[Math.min(1, pts.length - 1)];
         add("text", {
-          x: mid.x.toFixed(1),
-          y: (mid.y + 28).toFixed(1),
+          x: "56",
+          y: "332",
           fill: "#163328",
           "font-family": "Segoe UI, sans-serif",
           "font-size": "16",
-          "font-weight": "700",
-          "text-anchor": "middle"
+          "font-weight": "700"
         }, quoteId);
       }
 
@@ -475,7 +489,7 @@
           var latlngs = lines.map(function (stop) { return [stop.lat, stop.lng]; });
           window.L.polyline(latlngs, { color: "#f4efe4", weight: 10, opacity: 0.92 }).addTo(map);
           var line = window.L.polyline(latlngs, { color: "#163328", weight: 4 }).addTo(map);
-          var dirs = ["right", "left", "right"];
+          var dirs = ["right", "right", "left"];
           lines.forEach(function (stop, i) {
             window.L.circleMarker([stop.lat, stop.lng], {
               radius: 8,
@@ -485,7 +499,19 @@
               fillOpacity: 1
             }).addTo(map).bindTooltip(stop.place, { permanent: true, direction: dirs[i] || "top", offset: [0, 0] });
           });
-          map.fitBounds(line.getBounds().pad(0.4));
+          var from = lines[0];
+          var to = lines[1] || lines[0];
+          window.L.marker([(from.lat + to.lat) / 2, (from.lng + to.lng) / 2 - 0.15], {
+            interactive: false,
+            keyboard: false,
+            icon: window.L.divIcon({
+              className: "quote-marker",
+              html: "<span>" + quoteId + "</span>",
+              iconSize: [96, 28],
+              iconAnchor: [96, 14]
+            })
+          }).addTo(map);
+          map.fitBounds(line.getBounds().pad(0.45));
           setTimeout(function () { map.invalidateSize(); }, 80);
         } catch (err) {
           showFallback();
