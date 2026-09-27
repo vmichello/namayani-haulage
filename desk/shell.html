@@ -144,6 +144,18 @@
     .chip.setup { color: var(--orange); background: #fff1e8; border: 1px solid #f0c2a8; }
     .chip.ready { color: var(--green); background: #e7f2ea; border: 1px solid #b7d4c2; }
     .chip.paused { color: var(--muted); background: var(--paper-deep); border: 1px solid var(--line); }
+    .need-fields { margin: 8px 0 0; font-family: var(--sans); font-size: 0.92rem; color: var(--muted); }
+    .configure-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+    .configure-list li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+    .configure-list .name { font-family: var(--sans); font-weight: 700; min-width: 9.5rem; }
+    .configure-list .fine { margin: 0; flex: 1 1 16rem; }
     .map-stage {
       position: relative;
       height: 300px;
@@ -253,6 +265,7 @@
       #books { grid-column: 2; grid-row: 2; }
       #ads { grid-column: 1; grid-row: 3; }
       #files { grid-column: 2; grid-row: 3; }
+      #configure { grid-column: 1 / -1; }
     }
   </style>
 </head>
@@ -292,6 +305,7 @@
       <section class="panel" id="maps" aria-labelledby="maps-title">
         <div class="panel-head">
           <h2 id="maps-title">Maps</h2>
+          <span class="chip ready" data-status="ready">Ready</span>
         </div>
         <div class="map-stage is-fallback" id="map-stage">
           <div id="map" role="region" aria-label="Quote route map"></div>
@@ -329,6 +343,7 @@
           <p><strong>Inquiries</strong></p>
           <p class="empty">No live inbox.</p>
         </div>
+        <p class="need-fields" id="mail-fields">Needs GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN.</p>
       </section>
 
       <section class="panel" id="books" aria-labelledby="books-title">
@@ -343,6 +358,7 @@
           <li data-place="Harare" data-lat="-17.8252" data-lng="31.0335">Harare</li>
         </ol>
         <p class="fine">Delivery lines above are the route. No Books call is made from this shell.</p>
+        <p class="need-fields" id="books-fields">Needs ZOHO_BOOKS_ORG_ID, ZOHO_BOOKS_CLIENT_ID, ZOHO_BOOKS_CLIENT_SECRET, ZOHO_BOOKS_REFRESH_TOKEN.</p>
       </section>
 
       <section class="panel" id="ads" aria-labelledby="ads-title">
@@ -354,6 +370,7 @@
           <p>Read-only slot.</p>
           <p class="empty">No campaign or analytics figures in this shell.</p>
         </div>
+        <p class="need-fields" id="ads-fields">Needs GOOGLE_ADS_CUSTOMER_ID, GA4_PROPERTY_ID.</p>
       </section>
 
       <section class="panel" id="files" aria-labelledby="files-title">
@@ -364,6 +381,14 @@
         <p class="link-line">Slot for case JSON. Ready is a shell label only.</p>
         <label class="slot-label" for="case-json">Case JSON</label>
         <input id="case-json" type="file" accept=".json,application/json" />
+      </section>
+
+      <section class="panel" id="configure" aria-labelledby="configure-title">
+        <div class="panel-head">
+          <h2 id="configure-title">Configure</h2>
+        </div>
+        <p class="fine">Each connector, the server fields it needs, and the status from the runtime. Paused means those fields are present and live calls stay off.</p>
+        <ul class="configure-list" id="configure-list"></ul>
       </section>
     </main>
   </div>
@@ -383,15 +408,68 @@
       var runtime = window.NamayaniConnectors;
       if (!runtime || typeof runtime.routeFromQuote !== "function" || typeof runtime.run !== "function") return;
 
+      function statusKind(status) {
+        return status === "needs_setup" ? "setup" : status === "paused" ? "paused" : "ready";
+      }
+
+      function statusLabel(status) {
+        return status === "needs_setup" ? "Needs setup" : status === "paused" ? "Paused" : "Ready";
+      }
+
       function paintChip(panelId, status) {
         var panel = document.getElementById(panelId);
         if (!panel) return;
         var chip = panel.querySelector(".chip");
         if (!chip) return;
-        var kind = status === "needs_setup" ? "setup" : status === "paused" ? "paused" : "ready";
-        var label = status === "needs_setup" ? "Needs setup" : status === "paused" ? "Paused" : "Ready";
-        chip.className = "chip " + kind;
-        chip.textContent = label;
+        chip.className = "chip " + statusKind(status);
+        chip.textContent = statusLabel(status);
+        chip.setAttribute("data-status", status);
+      }
+
+      function fieldNote(row) {
+        if (!row) return "";
+        if (row.id === "github") return "Workflow paths only.";
+        if (!row.fields.length) return "No server fields.";
+        if (row.missing.length) return "Needs " + row.missing.join(", ") + ".";
+        return "Server fields present. Live calls stay off.";
+      }
+
+      function paintNeeds(nodeId, note) {
+        var node = document.getElementById(nodeId);
+        if (node) node.textContent = note;
+      }
+
+      function envFlags(body) {
+        var source = body && body.env && typeof body.env === "object" && !Array.isArray(body.env) ? body.env : {};
+        var env = {};
+        (runtime.ENV_FLAGS || []).forEach(function (key) {
+          env[key] = source[key] === true;
+        });
+        return env;
+      }
+
+      function renderConfigure(rows) {
+        var list = document.getElementById("configure-list");
+        if (!list) return;
+        while (list.firstChild) list.removeChild(list.firstChild);
+        rows.forEach(function (row) {
+          var item = document.createElement("li");
+          item.setAttribute("data-connector", row.id);
+          var name = document.createElement("span");
+          name.className = "name";
+          name.textContent = row.name;
+          var chip = document.createElement("span");
+          chip.className = "chip " + statusKind(row.status);
+          chip.textContent = statusLabel(row.status);
+          chip.setAttribute("data-status", row.status);
+          var note = document.createElement("span");
+          note.className = "fine";
+          note.textContent = fieldNote(row);
+          item.appendChild(name);
+          item.appendChild(chip);
+          item.appendChild(note);
+          list.appendChild(item);
+        });
       }
 
       function fillRoute(route) {
@@ -422,16 +500,26 @@
       var books = runtime.run("zoho-books", { env: {} });
       fillRoute(runtime.routeFromQuote(books.quote));
 
+      function rowById(rows, id) {
+        for (var i = 0; i < rows.length; i++) {
+          if (rows[i].id === id) return rows[i];
+        }
+        return null;
+      }
+
       function paintPanels(env, cases) {
         var ctx = { env: env || {}, cases: cases || [] };
-        var email = runtime.run("email", ctx);
         var booksResult = runtime.run("zoho-books", ctx);
-        var ads = runtime.run("google-ads", ctx);
-        var analytics = runtime.run("google-analytics", ctx);
+        var rows = runtime.configure({ env: ctx.env, cases: ctx.cases, quote: booksResult.quote });
+        var email = rowById(rows, "email");
+        var booksRow = rowById(rows, "zoho-books");
+        var ads = rowById(rows, "google-ads");
+        var analytics = rowById(rows, "google-analytics");
         var files = runtime.run("local-files", ctx);
         var maps = runtime.run("maps", { env: ctx.env, quote: booksResult.quote });
+        paintChip("maps", maps.status);
         paintChip("mail", email.status);
-        paintChip("books", booksResult.status);
+        paintChip("books", booksRow.status);
         paintChip("files", files.status);
         var adsStatus = ads.status === "needs_setup" || analytics.status === "needs_setup"
           ? "needs_setup"
@@ -439,6 +527,10 @@
             ? "paused"
             : "ready";
         paintChip("ads", adsStatus);
+        paintNeeds("mail-fields", fieldNote(email));
+        paintNeeds("books-fields", fieldNote(booksRow));
+        var adsMissing = ads.missing.concat(analytics.missing);
+        paintNeeds("ads-fields", adsMissing.length ? "Needs " + adsMissing.join(", ") + "." : "Server fields present. Live calls stay off.");
         var mailEmpty = document.querySelector("#mail .empty");
         if (mailEmpty) mailEmpty.textContent = email.detail;
         var booksFine = document.querySelector("#books .fine");
@@ -461,9 +553,22 @@
         } else if (source && !maps.route) {
           source.textContent = "No delivery lines, so the map does not draw a route.";
         }
+        renderConfigure(rows);
+      }
+
+      function applyServer(body) {
+        var env = envFlags(body);
+        var cases = body && Array.isArray(body.cases) ? body.cases : [];
+        paintPanels(env, cases);
       }
 
       paintPanels({}, []);
+      if (typeof fetch === "function") {
+        fetch("/api/desk", { headers: { Accept: "application/json" } })
+          .then(function (response) { return response.ok ? response.json() : null; })
+          .then(function (body) { if (body) applyServer(body); })
+          .catch(function () {});
+      }
     })();
   </script>
   <script>

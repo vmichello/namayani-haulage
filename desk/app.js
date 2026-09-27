@@ -664,23 +664,61 @@
     return "bg-green-lt";
   }
 
+  function envFlags(raw) {
+    const env = {};
+    const flags = (window.NamayaniConnectors && window.NamayaniConnectors.ENV_FLAGS) || [];
+    flags.forEach((key) => {
+      env[key] = !!(raw && raw[key] === true);
+    });
+    return env;
+  }
+
+  function fieldNote(row) {
+    if (!row) return "";
+    if (row.id === "github") return "Workflow paths only.";
+    if (!row.fields.length) return "No server fields.";
+    if (row.missing.length) return "Needs " + row.missing.join(", ") + ".";
+    return "Server fields present. Live calls stay off.";
+  }
+
   function renderConnectors() {
+    const runtime = window.NamayaniConnectors;
     const connectors = (window.NamayaniDesk && window.NamayaniDesk.connectors) || [];
+    const rows = runtime && typeof runtime.configure === "function"
+      ? runtime.configure({ env: state.env, cases: state.apiCases })
+      : [];
+    const byId = {};
+    rows.forEach((row) => { byId[row.id] = row; });
+    const configure = el("section", { class: "card mb-3", id: "configure" }, [
+      el("div", { class: "card-header" }, [el("h2", { class: "card-title mb-0" }, ["Configure"])]),
+      el("div", { class: "card-body" }, [
+        el("p", { class: "text-secondary" }, ["Each connector, the server fields it needs, and the status from the runtime. Paused means those fields are present and live calls stay off."]),
+        el("div", { class: "list-group list-group-flush" }, rows.map((row) => el("div", {
+          class: "list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 px-0",
+          "data-connector": row.id,
+        }, [
+          el("div", {}, [
+            el("strong", { class: "me-2" }, [row.name]),
+            el("span", { class: "text-secondary" }, [fieldNote(row)]),
+          ]),
+          el("span", { class: "badge " + statusClass(row.status), "data-status": row.status }, [statusLabel(row.status)]),
+        ]))),
+      ]),
+    ]);
     const grid = el("div", { class: "row g-3" });
     connectors.forEach((connector) => {
       const result = connector.resolve({ env: state.env, cases: state.apiCases });
+      const row = byId[connector.id];
       const card = el("article", { class: "card h-100" }, [
         el("div", { class: "card-header d-flex justify-content-between align-items-center gap-2" }, [
           el("h2", { class: "card-title mb-0" }, [connector.name]),
-          el("span", { class: "badge " + statusClass(result.status) }, [statusLabel(result.status)]),
+          el("span", { class: "badge " + statusClass(result.status), "data-status": result.status }, [statusLabel(result.status)]),
         ]),
         el("div", { class: "card-body" }, [
           el("p", {}, [connector.purpose]),
           el("p", { class: "text-secondary" }, [result.detail]),
           el("ul", { class: "mb-2" }, connector.actions.map((action) => el("li", {}, [action]))),
-          connector.fields.length
-            ? el("p", { class: "text-secondary mb-0" }, ["Server fields: " + connector.fields.map((field) => field.key).join(", ")])
-            : null,
+          el("p", { class: "text-secondary mb-0" }, [fieldNote(row)]),
         ]),
       ]);
       if (connector.id === "github" && state.workflows.length) {
@@ -701,7 +739,7 @@
         ]),
       ]),
     ]);
-    return el("div", {}, [grid, help]);
+    return el("div", {}, [configure, grid, help]);
   }
 
   function renderView() {
@@ -861,7 +899,7 @@
       if (!response.ok) throw new Error("Desk API returned " + response.status);
       const body = await response.json();
       state.apiCases = Array.isArray(body.cases) ? body.cases : [];
-      state.env = body.env || {};
+      state.env = envFlags(body.env);
       state.workflows = Array.isArray(body.workflows) ? body.workflows : [];
       state.error = "";
     } catch {

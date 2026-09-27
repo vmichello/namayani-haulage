@@ -37,6 +37,16 @@
 
   var IDS = ["github", "local-files", "maps", "email", "zoho-books", "google-ads", "google-analytics"];
 
+  var NAMES = {
+    github: "GitHub",
+    "local-files": "Local files",
+    maps: "Maps",
+    email: "Email",
+    "zoho-books": "Zoho Books",
+    "google-ads": "Google Ads",
+    "google-analytics": "Google Analytics",
+  };
+
   var CREDENTIALS = {
     github: [],
     "local-files": [],
@@ -65,6 +75,14 @@
       if (!isSet(env[keys[i]])) return false;
     }
     return true;
+  }
+
+  function missingKeys(env, keys) {
+    var missing = [];
+    for (var i = 0; i < keys.length; i++) {
+      if (!isSet(env[keys[i]])) missing.push(keys[i]);
+    }
+    return missing;
   }
 
   function coord(value) {
@@ -297,6 +315,22 @@
     return { status: result.status, detail: result.detail };
   }
 
+  function configure(ctx) {
+    var env = envOf(ctx);
+    return IDS.map(function (id) {
+      var result = run(id, ctx);
+      var fields = CREDENTIALS[id].slice();
+      return {
+        id: id,
+        name: NAMES[id],
+        status: result.status,
+        detail: result.detail,
+        fields: fields,
+        missing: missingKeys(env, fields),
+      };
+    });
+  }
+
   var api = {
     IDS: IDS,
     ENV_FLAGS: ENV_FLAGS,
@@ -309,6 +343,7 @@
     loadOpsCases: loadOpsCases,
     run: run,
     resolveConnector: resolveConnector,
+    configure: configure,
   };
 
   root.NamayaniConnectors = api;

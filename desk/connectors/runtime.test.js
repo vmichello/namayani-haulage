@@ -105,6 +105,59 @@ test("connector status with empty env and with credentials, and no network", () 
   }
 });
 
+test("boolean env flags flip needs setup to paused and name only the missing fields", () => {
+  const flags = {};
+  for (const key of runtime.ENV_FLAGS) flags[key] = false;
+  const idle = runtime.configure({ env: flags });
+  const idleById = Object.fromEntries(idle.map((row) => [row.id, row]));
+  assert.equal(idleById.email.status, "needs_setup");
+  assert.deepEqual(idleById.email.missing, ["GMAIL_CLIENT_ID", "GMAIL_CLIENT_SECRET", "GMAIL_REFRESH_TOKEN"]);
+  assert.deepEqual(idleById["zoho-books"].missing, [
+    "ZOHO_BOOKS_ORG_ID",
+    "ZOHO_BOOKS_CLIENT_ID",
+    "ZOHO_BOOKS_CLIENT_SECRET",
+    "ZOHO_BOOKS_REFRESH_TOKEN",
+  ]);
+  assert.deepEqual(idleById["google-ads"].missing, ["GOOGLE_ADS_CUSTOMER_ID"]);
+  assert.deepEqual(idleById["google-analytics"].missing, ["GA4_PROPERTY_ID"]);
+  assert.equal(idleById.github.status, "ready");
+  assert.deepEqual(idleById.github.fields, []);
+  assert.equal(idleById.maps.status, "ready");
+  assert.equal(idleById["local-files"].status, "ready");
+
+  const on = {};
+  for (const key of runtime.ENV_FLAGS) on[key] = true;
+  const live = runtime.configure({ env: on });
+  for (const row of live) {
+    if (row.fields.length) {
+      assert.equal(row.status, "paused", row.id);
+      assert.deepEqual(row.missing, [], row.id);
+    } else {
+      assert.equal(row.status, "ready", row.id);
+    }
+    assert.equal(JSON.stringify(row).includes("gmail-secret-value"), false);
+    assert.equal(JSON.stringify(row).includes("zoho-secret-value"), false);
+  }
+
+  const partial = runtime.configure({
+    env: Object.assign({}, on, { GMAIL_REFRESH_TOKEN: false, ZOHO_BOOKS_CLIENT_SECRET: false }),
+  });
+  const partialById = Object.fromEntries(partial.map((row) => [row.id, row]));
+  assert.equal(partialById.email.status, "needs_setup");
+  assert.deepEqual(partialById.email.missing, ["GMAIL_REFRESH_TOKEN"]);
+  assert.equal(partialById["zoho-books"].status, "needs_setup");
+  assert.deepEqual(partialById["zoho-books"].missing, ["ZOHO_BOOKS_CLIENT_SECRET"]);
+  assert.equal(partialById["google-ads"].status, "paused");
+  assert.equal(partialById["google-analytics"].status, "paused");
+
+  const books = runtime.run("zoho-books", { env: on });
+  assert.equal(books.status, "paused");
+  assert.equal(books.calledBooks, false);
+  const route = runtime.run("maps", { env: on, quote: books.quote }).route;
+  assert.equal(route.quoteId, "EST-0142");
+  assert.deepEqual(route.stops.map((stop) => stop.label), ["Johannesburg", "Beitbridge", "Harare"]);
+});
+
 test("routeFromQuote(EST-0142) is the three stops in order and carries the quote id", () => {
   const route = runtime.routeFromQuote("EST-0142");
   assert.equal(route.quoteId, "EST-0142");
@@ -181,6 +234,21 @@ test("desk shell and index call the runtime", () => {
   const shell = fs.readFileSync(path.join(__dirname, "..", "shell.html"), "utf8");
   assert.match(shell, /\/desk\/connectors\/runtime\.js/);
   assert.match(shell, /routeFromQuote/);
+  assert.match(shell, /id="configure"/);
+  assert.match(shell, /fetch\("\/api\/desk"/);
+  assert.match(shell, /runtime\.configure/);
+  assert.match(shell, /GMAIL_CLIENT_ID/);
+  assert.match(shell, /ZOHO_BOOKS_REFRESH_TOKEN/);
+  assert.match(shell, /GOOGLE_ADS_CUSTOMER_ID/);
+  assert.match(shell, /GA4_PROPERTY_ID/);
+  assert.equal(shell.includes("gmail-secret"), false);
+  assert.equal(shell.includes("zoho-secret"), false);
   const index = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
   assert.ok(index.indexOf("/desk/connectors/runtime.js") < index.indexOf("/desk/connectors/registry.js"));
+  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  assert.match(app, /fetch\("\/api\/desk"/);
+  assert.match(app, /runtime\.configure/);
+  assert.match(app, /envFlags/);
+  const api = fs.readFileSync(path.join(root, "api", "desk.ts"), "utf8");
+  assert.match(api, /env\[key\] = Boolean\(process\.env\[key\]\)/);
 });
