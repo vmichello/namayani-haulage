@@ -814,7 +814,13 @@
           ]),
           el("div", { class: "text-secondary small px-3" }, ["Haulage command"]),
           el("div", { class: "collapse navbar-collapse", id: "sidebar-menu" }, [
-            el("ul", { class: "navbar-nav pt-lg-3" }, VIEWS.map((item) => navLink(item, false))),
+            el("ul", { class: "navbar-nav pt-lg-3" }, VIEWS.map((item) => navLink(item, false)).concat([
+              el("li", { class: "nav-item" }, [
+                el("a", { class: "nav-link", href: "/desk/shell.html" }, [
+                  el("span", { class: "nav-link-title" }, ["Portable shell"]),
+                ]),
+              ]),
+            ])),
           ]),
         ]),
       ]),
@@ -827,8 +833,9 @@
                 el("h2", { class: "page-title mb-0" }, [current.label]),
                 el("div", { class: "text-secondary" }, ["SA–Zimbabwe via Beitbridge"]),
               ]),
-              el("div", { class: "col-auto" }, [
-                el("span", { class: "badge bg-secondary-lt me-1" }, [state.jobs.length + (state.jobs.length === 1 ? " job" : " jobs")]),
+              el("div", { class: "col-auto d-flex flex-wrap align-items-center gap-2" }, [
+                el("a", { class: "btn btn-outline-secondary", href: "/desk/shell.html" }, ["Portable shell"]),
+                el("span", { class: "badge bg-secondary-lt" }, [state.jobs.length + (state.jobs.length === 1 ? " job" : " jobs")]),
                 el("span", { class: holds ? "badge bg-red-lt" : "badge bg-green-lt" }, [holds ? holds + " in a gate" : "All clear"]),
               ]),
             ]),
